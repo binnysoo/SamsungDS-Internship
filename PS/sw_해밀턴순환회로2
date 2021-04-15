@@ -1,0 +1,58 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+const int MAX_SZ = 19;
+const int IFNTY = 999999999;
+int N;
+int dist[MAX_SZ][MAX_SZ], dp[MAX_SZ][1 << MAX_SZ];
+int FINISH, SRC = 0;
+
+int min2(int a, int b) {
+	return a < b ? a : b;
+}
+
+// visit = 어떤 경로를 거쳐서 cur까지 왔는지에 대한 정보 (bit)
+int solve(int cur, int visit) {
+	for (int next = 0; next < N; ++next) {
+		if (dist[cur][next] == 0) continue; //no route
+		if ((visit & (1 << next)) != 0) continue; //visited
+
+		int next_visit = (visit | (1 << next));
+		if (next_visit == FINISH) {
+			int to_start = dist[next][SRC] == 0 ? IFNTY : dist[next][SRC];
+			dp[cur][visit] = min2(dp[cur][visit], dist[cur][next] + to_start);
+		}
+		else if (dp[next][next_visit] != IFNTY) {
+			dp[cur][visit] = min2(dp[cur][visit], dist[cur][next] + dp[next][next_visit]);	
+		}
+		else {
+			dp[cur][visit] = min2(dp[cur][visit], dist[cur][next] + solve(next, next_visit));
+		}
+	}
+	return dp[cur][visit];
+}
+
+int main() {
+
+	// freopen("input.txt", "r", stdin);
+
+	cin >> N;
+	FINISH = (1 << N) - 1;
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < N; ++j) {
+			cin >> dist[i][j];
+		}
+	}
+
+	for (int i = 0; i < N; ++i) {
+		for (int j = 0; j < (1 << N); ++j) {
+			dp[i][j] = IFNTY;
+		}
+	}
+
+
+	cout << solve(SRC, 1 << SRC);
+
+	return 0;
+}
